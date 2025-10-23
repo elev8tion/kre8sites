@@ -1,4 +1,4 @@
-# Vibe - AI Website Builder - Project Summary
+# KRE8SITES - AI Website Builder - Project Summary
 
 ## 🎯 What We Built
 
@@ -41,7 +41,7 @@ A **production-ready SaaS AI Website Builder** that generates complete Next.js a
 ## 📁 File Structure
 
 ```
-vibe/
+kre8sites/
 ├── app/                           # Next.js App Router
 │   ├── page.tsx                   # Landing page with templates
 │   ├── builder/                   # Builder interface
@@ -60,7 +60,7 @@ vibe/
 ├── lib/
 │   ├── db.ts                      # Prisma client
 │   ├── utils.ts                   # Utility functions
-│   ├── theme.ts                   # Vibe theme config
+│   ├── theme.ts                   # KRE8SITES theme config
 │   ├── supabase/
 │   │   ├── client.ts              # Browser client
 │   │   └── server.ts              # Server client

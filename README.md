@@ -1,6 +1,6 @@
-# Vibe - AI-Powered SaaS Website Builder
+# KRE8SITES - AI-Powered SaaS Website Builder
 
-![Vibe Banner](https://img.shields.io/badge/Built%20with-Next.js%2015-black?style=for-the-badge&logo=next.js)
+![KRE8SITES Banner](https://img.shields.io/badge/Built%20with-Next.js%2015-black?style=for-the-badge&logo=next.js)
 ![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge&logo=supabase)
 ![OpenAI](https://img.shields.io/badge/AI-OpenAI-412991?style=for-the-badge&logo=openai)
 
@@ -63,7 +63,7 @@
 
 ```bash
 git clone <your-repo>
-cd vibe
+cd kre8sites
 npm install
 ```
 
@@ -165,7 +165,7 @@ Netlify will automatically deploy your site. You'll get a FREE `yoursite.netlify
 ## 📚 Project Structure
 
 ```
-vibe/
+kre8sites/
 ├── app/
 │   ├── page.tsx              # Landing page
 │   ├── builder/              # Website builder interface

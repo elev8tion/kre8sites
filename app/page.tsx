@@ -18,7 +18,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Vibe</h1>
+          <h1 className="text-2xl font-bold">KRE8SITES</h1>
           <div className="flex gap-4">
             <Link href="/login">
               <Button variant="ghost">Sign In</Button>
@@ -33,7 +33,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold mb-4">
-            Build something with Vibe
+            Build something with KRE8SITES
           </h2>
           <p className="text-xl text-muted-foreground mb-8">
             Create apps and websites by chatting with AI
@@ -93,7 +93,7 @@ export default function Home() {
 
       <footer className="border-t mt-16">
         <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
-          <p>&copy; 2025 Vibe. Built with Next.js, Supabase, and OpenAI.</p>
+          <p>&copy; 2025 KRE8SITES. Built with Next.js, Supabase, and OpenAI.</p>
         </div>
       </footer>
     </div>

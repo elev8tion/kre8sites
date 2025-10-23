@@ -1,11 +1,11 @@
-# 🚀 Quick Start Guide - Vibe
+# 🚀 Quick Start Guide - KRE8SITES
 
 Get up and running in **5 minutes**!
 
 ## Installation
 
 ```bash
-cd /Users/kcdacre8tor/kre8sites/vibe
+cd /Users/kcdacre8tor/kre8sites/kre8sites
 npm install
 ```
 

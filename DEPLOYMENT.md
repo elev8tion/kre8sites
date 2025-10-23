@@ -1,8 +1,8 @@
-# Deployment Guide - Vibe AI Website Builder
+# Deployment Guide - KRE8SITES AI Website Builder
 
 ## 🚀 Quick Deployment (100% FREE)
 
-This guide will help you deploy Vibe with **$0/month** infrastructure costs!
+This guide will help you deploy KRE8SITES with **$0/month** infrastructure costs!
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ This guide will help you deploy Vibe with **$0/month** infrastructure costs!
 3. Create a new organization (if needed)
 4. Click "New Project"
 5. Fill in:
-   - Name: `vibe-production`
+   - Name: `kre8sites-production`
    - Database Password: (save this!)
    - Region: Choose closest to your users
 6. Click "Create new project"
@@ -104,9 +104,9 @@ supabase functions invoke generate-website \
 ```bash
 git init
 git add .
-git commit -m "Initial commit - Vibe AI Website Builder"
+git commit -m "Initial commit - KRE8SITES AI Website Builder"
 git branch -M main
-git remote add origin https://github.com/yourusername/vibe.git
+git remote add origin https://github.com/yourusername/kre8sites.git
 git push -u origin main
 ```
 
@@ -116,7 +116,7 @@ git push -u origin main
 2. Click "Add new site" → "Import an existing project"
 3. Choose "Deploy with GitHub"
 4. Authorize Netlify
-5. Select your `vibe` repository
+5. Select your `kre8sites` repository
 6. Configure build settings:
    - **Build command**: `npm run build`
    - **Publish directory**: `.next`

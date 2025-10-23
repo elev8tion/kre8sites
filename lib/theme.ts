@@ -1,4 +1,4 @@
-export const VibeTheme = {
+export const KRE8SITESTheme = {
   colors: {
     primary: "#3B82F6",
     secondary: "#8B5CF6",

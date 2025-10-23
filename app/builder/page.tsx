@@ -51,7 +51,7 @@ export default function BuilderPage() {
     <div className="min-h-screen bg-background">
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">Vibe Builder</h1>
+          <h1 className="text-2xl font-bold">KRE8SITES Builder</h1>
         </div>
       </nav>
 
@@ -85,7 +85,7 @@ export default function BuilderPage() {
                     : "bg-muted max-w-[80%]")}
               >
                 <p className="text-sm font-medium mb-1">
-                  {msg.role === "user" ? "You" : "Vibe AI"}
+                  {msg.role === "user" ? "You" : "KRE8SITES AI"}
                 </p>
                 <p className="whitespace-pre-wrap">{msg.content}</p>
               </Card>
