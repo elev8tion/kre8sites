@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import OpenAI from "openai";
+import { callReactinatorTool } from "@/lib/mcp-client";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,87 +10,135 @@ const openai = new OpenAI({
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { prompt } = await request.json();
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
 
-    // Find or create user in database
-    let user = await prisma.user.findUnique({
-      where: { supabaseId: session.user.id },
+    // Try to get authenticated user, but don't require it for testing
+    const supabase = await createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    let user = null;
+    let userId = "demo-user"; // Default for non-authenticated users
+
+    if (session) {
+      // Find or create user in database
+      user = await prisma.user.findUnique({
+        where: { supabaseId: session.user.id },
+      });
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            supabaseId: session.user.id,
+            email: session.user.email || "",
+            credits: 2,
+          },
+        });
+      }
+
+      userId = user.id;
+
+      // Check credits for authenticated users
+      if (user.credits < 1) {
+        return NextResponse.json(
+          { error: "Insufficient credits. Please sign in to get free credits!" },
+          { status: 402 }
+        );
+      }
+    }
+
+    // Step 1: Use OpenAI to analyze the prompt and determine what components are needed
+    const analysisPrompt = `Analyze this user request and determine what type of React component should be created.
+User request: "${prompt}"
+
+Respond with JSON in this exact format:
+{
+  "componentType": "calculator|counter|todolist|form|dashboard|custom",
+  "componentName": "MyComponentName",
+  "features": ["feature1", "feature2"],
+  "needsState": true|false
+}`;
+
+    const analysis = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [{ role: "user", content: analysisPrompt }],
+      temperature: 0.3,
     });
 
-    if (!user) {
-      user = await prisma.user.create({
+    let componentSpec;
+    try {
+      const analysisText = analysis.choices[0]?.message?.content || "{}";
+      componentSpec = JSON.parse(analysisText);
+    } catch {
+      componentSpec = {
+        componentType: "custom",
+        componentName: "GeneratedComponent",
+        features: [prompt],
+        needsState: true,
+      };
+    }
+
+    // Step 2: Use Reactinator MCP to generate the component
+    let generatedCode;
+    try {
+      const result = await callReactinatorTool("generate_react_component", {
+        componentName: componentSpec.componentName,
+        componentType: componentSpec.needsState ? "stateful" : "stateless",
+        description: prompt,
+        features: componentSpec.features || [prompt],
+        styling: "tailwind",
+      });
+
+      generatedCode = result.content[0]?.text || null;
+    } catch (error) {
+      console.error("Reactinator MCP error:", error);
+      // Fallback to direct OpenAI generation if MCP fails
+      const fallback = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Generate a complete Next.js page component with TypeScript and Tailwind CSS. Return ONLY code, no explanations.",
+          },
+          { role: "user", content: prompt },
+        ],
+        temperature: 0.7,
+      });
+      generatedCode = fallback.choices[0]?.message?.content || "// Generation failed";
+    }
+
+    // Only save to database if user is authenticated
+    let websiteId = null;
+    if (user) {
+      const website = await prisma.website.create({
         data: {
-          supabaseId: session.user.id,
-          email: session.user.email || "",
-          credits: 2,
+          userId: user.id,
+          prompt: prompt,
+          code: generatedCode,
+          status: "completed",
         },
+      });
+      websiteId = website.id;
+
+      // Decrement credits
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { credits: user.credits - 1 },
       });
     }
 
-    // Check credits
-    if (user.credits < 1) {
-      return NextResponse.json(
-        { error: "Insufficient credits" },
-        { status: 402 }
-      );
-    }
-
-    // Generate code with OpenAI
-    const systemPrompt = `You are an expert Next.js and React developer. Generate complete, production-ready code based on user requirements.
-
-Generate a complete Next.js page component with the following:
-- Use "use client" directive if needed for interactivity
-- Use Tailwind CSS for styling
-- Include proper TypeScript types
-- Make it responsive and modern
-- Include all necessary imports
-- Return ONLY the code, no explanations`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.7,
-    });
-
-    const generatedCode = completion.choices[0]?.message?.content || "// Generation failed";
-
-    // Create website record
-    const website = await prisma.website.create({
-      data: {
-        userId: user.id,
-        prompt: prompt,
-        code: generatedCode,
-        status: "completed",
-      },
-    });
-
-    // Decrement credits
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { credits: user.credits - 1 },
-    });
-
     return NextResponse.json({
       success: true,
-      websiteId: website.id,
+      websiteId: websiteId,
       code: generatedCode,
-      creditsRemaining: user.credits - 1,
+      creditsRemaining: user ? user.credits - 1 : null,
+      message: user ? "Code generated successfully!" : "Code generated! Sign in to save your projects and get free credits.",
     });
   } catch (error) {
     console.error("API error:", error);

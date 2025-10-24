@@ -1,14 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import sdk from "@stackblitz/sdk";
 
 export default function BuilderPage() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (generatedCode && previewRef.current) {
+      // Clear previous preview
+      previewRef.current.innerHTML = "";
+
+      // Extract just the component code (remove markdown formatting)
+      let cleanCode = generatedCode;
+      if (cleanCode.includes("```")) {
+        cleanCode = cleanCode.split("```")[1] || cleanCode;
+        if (cleanCode.startsWith("tsx") || cleanCode.startsWith("ts") || cleanCode.startsWith("javascript")) {
+          cleanCode = cleanCode.substring(cleanCode.indexOf("\n") + 1);
+        }
+      }
+
+      // Create StackBlitz project
+      sdk.embedProject(
+        previewRef.current,
+        {
+          title: "Generated App",
+          description: "AI-generated Next.js app",
+          template: "node",
+          files: {
+            "package.json": JSON.stringify({
+              name: "generated-app",
+              version: "1.0.0",
+              dependencies: {
+                "react": "^18.2.0",
+                "react-dom": "^18.2.0",
+                "next": "^14.0.0"
+              },
+              scripts: {
+                "dev": "next dev",
+                "build": "next build",
+                "start": "next start"
+              }
+            }, null, 2),
+            "pages/index.tsx": cleanCode,
+            "pages/_app.tsx": `export default function App({ Component, pageProps }) {
+  return <Component {...pageProps} />
+}`,
+            "next.config.js": `module.exports = {}`
+          }
+        },
+        {
+          openFile: "pages/index.tsx",
+          view: "preview",
+          height: 600
+        }
+      );
+    }
+  }, [generatedCode]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -31,9 +86,10 @@ export default function BuilderPage() {
           { role: "assistant", content: "Error: " + data.error },
         ]);
       } else {
+        setGeneratedCode(data.code);
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: "Code generation started! Check back in a moment." },
+          { role: "assistant", content: data.message || "Code generated successfully! Check the preview →" },
         ]);
       }
     } catch (error) {
@@ -94,11 +150,18 @@ export default function BuilderPage() {
         </div>
 
         <div>
-          <Card className="p-6 h-[600px] flex items-center justify-center bg-muted">
-            <p className="text-muted-foreground">
-              Preview will appear here once generation is complete
-            </p>
-          </Card>
+          <div
+            ref={previewRef}
+            className="h-[600px] rounded-lg border bg-muted overflow-hidden"
+          >
+            {!generatedCode && (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">
+                  Live preview will appear here once generation is complete
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
